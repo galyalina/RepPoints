@@ -328,3 +328,10 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# my ignored folders
+.DS_Store
+data/*
+/data/
+/data/*
+

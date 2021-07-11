@@ -23,14 +23,12 @@ licenses = [{"id": 1,
              "url": "https://creativecommons.org/licenses/by-nc-sa/3.0/"
              }]
 
-DIRECTORY_ANNOTATIONS = "../../data_test/annotations/"
-DIRECTORY_CROPPED_IMAGE = "../../data_test/train/"
-DIRECTORY_CROPPED_MASK = "../../data_test/mask/"
-DIRECTORY_SPLIT_MASK = "../../data_test/mask_split/"
+# DIRECTORY_ANNOTATIONS = "../../data_test/annotations/"
+# DIRECTORY_IMAGE = "../../data_test/train/"
+# DIRECTORY_MASK = "../../data_test/mask/"
 
 category_name = 'building'
 building_id = '(238, 118, 33)'
-building_color = '#ee7621'
 
 
 # impervious surface & 38, 38, 38 & dark grey
@@ -111,9 +109,13 @@ def create_sub_masks(mask_image):
     return sub_masks
 
 
-def generate_annotation_for_single_image(annotations, file, annotation_id_index, image_id_index, is_crowd_flag=False):
+def generate_annotation_for_single_image(mask_folder, annotations,
+                                         file,
+                                         annotation_id_index,
+                                         image_id_index,
+                                         is_crowd_flag=False):
     try:
-        mask_image = Image.open(DIRECTORY_CROPPED_MASK + file)
+        mask_image = Image.open(mask_folder + file)
     except FileNotFoundError:
         raise Exception("Your dataset is corrupted, check ${file}")
     sub_masks = create_sub_masks(mask_image)
@@ -132,14 +134,14 @@ def generate_annotation_for_single_image(annotations, file, annotation_id_index,
 
 
 # todo
-def get_coco_annotations():
+def generate_coco_annotations(images_folder, mask_folder, annotations_folder):
     annotations = []
     images = []
     annotation_id_index = 0
 
-    for subdir, dirs, files in os.walk(DIRECTORY_CROPPED_IMAGE):
+    for subdir, dirs, files in os.walk(images_folder):
         for index, file in enumerate(files, start=1):
-            mask_image = Image.open(DIRECTORY_CROPPED_IMAGE + file)
+            mask_image = Image.open(images_folder + file)
             image = {
                 'license': 1,
                 'file_name': file,
@@ -149,13 +151,15 @@ def get_coco_annotations():
             }
             images.append(image)
 
-            annotations, annotation_id_index = generate_annotation_for_single_image(annotations,
+            annotations, annotation_id_index = generate_annotation_for_single_image(mask_folder,
+                                                                                    annotations,
                                                                                     file,
                                                                                     annotation_id_index,
                                                                                     index)
-    with open(DIRECTORY_ANNOTATIONS + 'annotations.json', 'w') as outfile:
+            print("Annotations for image " + str(index) + " out of " + str(len(files)) + " created")
+    with open(annotations_folder + 'annotations.json', 'w') as outfile:
         json.dump(annotations, outfile)
-    with open(DIRECTORY_ANNOTATIONS + 'images.json', 'w') as outfile:
+    with open(annotations_folder + 'images.json', 'w') as outfile:
         json.dump(images, outfile)
 
     coco = {
@@ -167,54 +171,6 @@ def get_coco_annotations():
         'categories': categories
     }
 
-    return coco
-
-
-def show_images_with_bbox(coco):
-    images = coco['images']
-    annotations = coco['annotations']
-    ax_dict = dict()
-    for image in images:
-        fig, ax = plt.subplots()
-        ax_dict[image['id']] = ax
-        image = Image.open(DIRECTORY_CROPPED_IMAGE + image['file_name'])
-        ax.imshow(image)
-    for annotation in annotations:
-        image_id = annotation['image_id']
-        x, y, w, h = annotation['bbox']
-        ax_from_image = ax_dict[image_id]
-        ax_from_image.add_patch(Rectangle((x, y), w, h,
-                                          linewidth=1,
-                                          edgecolor=building_color,
-                                          facecolor='none'))
-    plt.show()
-
-
-def store_images_with_bbox(coco):
-    images = coco['images']
-    annotations = coco['annotations']
-    image_dict = dict()
-    image_annotations = dict()
-    for image in images:
-        image_dict[image['id']] = DIRECTORY_CROPPED_IMAGE + image['file_name']
-        image_annotations[image['id']] = []
-    for annotation in annotations:
-        image_id = annotation['image_id']
-        x, y, w, h = annotation['bbox']
-        (image_annotations[image_id]).append([x, y, w, h])
-    for image in image_dict:
-        image_path = image_dict[image]
-        image_to_show = Image.open(image_path)
-        img_draw = ImageDraw.Draw(image_to_show)
-        for annotation in image_annotations[image]:
-            [x, y, w, h] = annotation
-            img_draw.rectangle([(x, y), (x + w, y + h)], outline=building_color, width=3)
-        image_to_show.show()
-
-
-if __name__ == '__main__':
-    coco = get_coco_annotations()
-    with open(DIRECTORY_ANNOTATIONS + 'coco.json', 'w') as outfile:
+    with open(annotations_folder + 'coco.json', 'w') as outfile:
         json.dump(coco, outfile)
-    # show_images_with_bbox(coco)
-    store_images_with_bbox(coco)
+    return coco

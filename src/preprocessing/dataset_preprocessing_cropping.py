@@ -2,12 +2,16 @@ import slidingwindow as sw
 import cv2
 import os
 
-DIRECTORY_CROPPED_IMAGE = "../../data_save/train/"
-DIRECTORY_CROPPED_MASK = "../../data_save/mask/"
-DIRECTORY_IMAGE = "../../data_save/train_large/"
-DIRECTORY_MASK = "../../data_save/mask_large/"
+# DIRECTORY_CROPPED_IMAGE = "../../data/train/"
+# DIRECTORY_CROPPED_MASK = "../../data/mask/"
+# DIRECTORY_IMAGE = "../../data/train_large/"
+# DIRECTORY_MASK = "../../data/mask_large/"
+DIRECTORY_CROPPED_IMAGE = "../../data_test/train/"
+DIRECTORY_CROPPED_MASK = "../../data_test/mask/"
+DIRECTORY_IMAGE = "../../data_test/train_large/"
+DIRECTORY_MASK = "../../data_test/mask_large/"
 IMAGE_SIZE = 460
-IMAGE_OVERLAP_PERCENTAGE = 0.25
+IMAGE_OVERLAP_PERCENTAGE = 0.5
 
 
 def find_file(name, path):
@@ -49,8 +53,8 @@ def crop_images(original, mask, str_prefix):
         cropped_image = original[y:y + height, x:x + width]
         cropped_mask = mask[y:y + height, x:x + width]
 
-        cv2.imwrite(DIRECTORY_CROPPED_IMAGE + 'img_' + str_prefix + str(index) + '.tif', cropped_image)
-        cv2.imwrite(DIRECTORY_CROPPED_MASK + 'img_' + str_prefix + str(index) + '.tif', cropped_mask)
+        cv2.imwrite(DIRECTORY_CROPPED_IMAGE + '' + str_prefix + str(index) + '.tif', cropped_image)
+        cv2.imwrite(DIRECTORY_CROPPED_MASK + '' + str_prefix + str(index) + '.tif', cropped_mask)
 
 
 def main():

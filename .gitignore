@@ -334,4 +334,7 @@ ASALocalRun/
 data/*
 /data/
 /data/*
-
+/data_save/
+/data_save/*
+/data_test/*
+/data_test/

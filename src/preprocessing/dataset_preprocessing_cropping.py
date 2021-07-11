@@ -2,10 +2,12 @@ import slidingwindow as sw
 import cv2
 import os
 
-DIRECTORY_CROPPED_IMAGE = "../../data/train/"
-DIRECTORY_CROPPED_MASK = "../../data/mask/"
-DIRECTORY_IMAGE = "../../data/train_large/"
-DIRECTORY_MASK = "../../data/mask_large/"
+DIRECTORY_CROPPED_IMAGE = "../../data_save/train/"
+DIRECTORY_CROPPED_MASK = "../../data_save/mask/"
+DIRECTORY_IMAGE = "../../data_save/train_large/"
+DIRECTORY_MASK = "../../data_save/mask_large/"
+IMAGE_SIZE = 460
+IMAGE_OVERLAP_PERCENTAGE = 0.25
 
 
 def find_file(name, path):
@@ -15,16 +17,25 @@ def find_file(name, path):
 
 
 def delete_folder(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
     for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
-            os.remove(os.path.join(root, name))
-    for name in dirs:
-        os.rmdir(os.path.join(root, name))
+            try:
+                os.remove(os.path.join(root, name))
+            except Exception:
+                print()
+        print()
+        for name in dirs:
+            try:
+                os.rmdir(os.path.join(root, name))
+            except Exception:
+                print()
 
 
 def crop_images(original, mask, str_prefix):
     # Generate the set of windows, with a 256-pixel max window size and 50% overlap
-    windows = sw.generate(original, sw.DimOrder.HeightWidthChannel, 1000, 0.0)
+    windows = sw.generate(original, sw.DimOrder.HeightWidthChannel, IMAGE_SIZE, IMAGE_OVERLAP_PERCENTAGE)
 
     # print(len(windows))
     # print(type(windows))
@@ -59,7 +70,7 @@ def main():
             mask = cv2.imread(DIRECTORY_MASK + file, cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
             crop_images(image, mask, file.split('.')[0])
             # TODO delete, used for test only
-            #break
+            # break
     # Calculate number of generated images with masks
     path, dirs, files = next(os.walk(DIRECTORY_CROPPED_MASK))
     file_count = len(files)

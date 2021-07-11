@@ -1,46 +1,36 @@
 import os
-import numpy as np  # (pip install numpy)
+import numpy as np
 from matplotlib.patches import Rectangle
-from skimage import measure  # (pip install scikit-image)
-from shapely.geometry import Polygon, MultiPolygon  # (pip install Shapely)
-import json
-from PIL import Image  # (pip install Pillow)
 import matplotlib.pyplot as plt
-import cv2
+import json
+from PIL import Image, ImageDraw
+
+from skimage.measure import label, regionprops
+
+# We're interested only in buildings
+categories = [{"id": 1, "name": 'building', "supercategory": 'none'}]
+
+info = {"year": 2020,
+        "version": "1.0",
+        "description": "SemCity Toulouse: A benchmark for building instance segmentation in satellite images",
+        "contributor": "Roscher, Ribana and Volpi, Michele and Mallet, Clément and Drees, Lukas and Wegner, Jan",
+        "url": "http://rs.ipb.uni-bonn.de/data/semcity-toulouse/",
+        "date_created": "2020"
+        }
+
+licenses = [{"id": 1,
+             "name": "Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License",
+             "url": "https://creativecommons.org/licenses/by-nc-sa/3.0/"
+             }]
 
 DIRECTORY_ANNOTATIONS = "../../data_test/annotations/"
 DIRECTORY_CROPPED_IMAGE = "../../data_test/train/"
 DIRECTORY_CROPPED_MASK = "../../data_test/mask/"
 DIRECTORY_SPLIT_MASK = "../../data_test/mask_split/"
 
-impervious_surface_id, building_id, previous_surface_id, high_vegetation_id, car_id, water_id, sport_venues_id, void_id = [
-    1, 2, 3, 4, 5, 6, 7, 8]
-
-category_name = ['impervious_surface', 'building', 'previous_surface', 'high_vegetation', 'car', 'water',
-                 'sport_venues',
-                 'void']
-
-category_ids = {
-    '(38, 38, 38)': impervious_surface_id,
-    '(238, 118, 33)': building_id,
-    '(34, 139, 34)': previous_surface_id,
-    '(0, 222, 137)': high_vegetation_id,
-    '(255, 0, 0)': car_id,
-    '(0, 0, 238)': water_id,
-    '(160, 30, 230)': sport_venues_id,
-    '(255, 255, 255)': void_id
-}
-
-colors = {
-    '(38, 38, 38)': "#262626",
-    '(238, 118, 33)': '#ee7621',
-    '(34, 139, 34)': '#228b22',
-    '(0, 222, 137)': "#00de89",
-    '(255, 0, 0)': "#ff0000",
-    '(0, 0, 238)': "#0000ee",
-    '(160, 30, 230)': "#a01ee6",
-    '(255, 255, 255)': "#ffffff"
-}
+category_name = 'building'
+building_id = '(238, 118, 33)'
+building_color = '#ee7621'
 
 
 # impervious surface & 38, 38, 38 & dark grey
@@ -52,6 +42,24 @@ colors = {
 # sport venues & 160, 30, 230 & purple
 # void &  255, 255, 255 &
 
+def get_bbox(image):
+    # image = np.array(mask_image)
+    # idx = image[:, :] > 124
+    # image[idx] = 255
+    # idx = image[:, :] <= 124
+    # image[idx] = 0
+    label_img = label(image)
+    regions = regionprops(label_img)
+    # fig, ax = plt.subplots()
+    # ax.imshow(image, cmap=plt.cm.gray)
+    # plt.show()
+    array_of_boxes = []
+    for props in regions:
+        min_y, min_x, max_y, max_x = props.bbox
+        array_of_boxes.append([min_x, min_y, max_x - min_x, max_y - min_y])
+    return array_of_boxes
+
+
 def create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, is_crowd):
     annotations = []
     # Find contours (boundary lines) around each sub-mask
@@ -59,52 +67,20 @@ def create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, i
     # is partially occluded. (E.g. an elephant behind a tree)
     # print(sub_mask.shape())
     img_array = np.array(sub_mask)
-    contours = measure.find_contours(img_array, 0, positive_orientation='low')
-    segmentations = []
-    for contour in contours:
-        # Flip from (row, col) representation to (x, y)
-        # and subtract the padding pixel
-        for i in range(len(contour)):
-            row, col = contour[i]
-            contour[i] = (col - 1, row - 1)
 
-        # Make a polygon and simplify it
-        poly = Polygon(contour)
-
-        print("contour ", contour)
-        print("poly ", poly)
-        print("image_id ", image_id)
-        print("category_id", category_id)
-
-        poly = poly.simplify(1.0, preserve_topology=True)
-        segmentation = np.array(poly.exterior.coords).ravel().tolist()
-        segmentations.append(segmentation)
-        x, y, max_x, max_y = poly.bounds
-        width = max_x - x
-        height = max_y - y
-        bbox = (x, y, width, height)
-        area = poly.area
-
+    bboxes = get_bbox(img_array)
+    for box in bboxes:
+        annotation_id = annotation_id + 1
         annotation = {
-            'segmentation': segmentations,
             'iscrowd': is_crowd,
             'image_id': image_id,
             'category_id': category_id,
             'id': annotation_id,
-            'bbox': bbox,
-            'area': area
+            'segmentation': [],
+            'bbox': box,
+            'area': box[3] * box[2]
         }
-        # Display the image and plot all contours found
-        # fig, ax = plt.subplots()
-        # ax.imshow(img_array, cmap=plt.cm.gray)
-        # plt.gca().add_patch(Rectangle((x, y), width, height, linewidth=1, edgecolor='r', facecolor='none'))
-        #
-        # ax.axis('image')
-        # ax.set_xticks([])
-        # ax.set_yticks([])
-        # plt.show()
         annotations.append(annotation)
-        annotation_id = annotation_id + 1
     return annotation_id, annotations
 
 
@@ -128,78 +104,39 @@ def create_sub_masks(mask_image):
                     # Note: we add 1 pixel of padding in each direction
                     # because the contours module doesn't handle cases
                     # where pixels bleed to the edge of the image
-                    sub_masks[pixel_str] = Image.new('1', (width + 2, height + 2))
+                    sub_masks[pixel_str] = Image.new('1', (width, height))
 
                 # Set the pixel value to 1 (default is 0), accounting for padding
-                sub_masks[pixel_str].putpixel((x + 1, y + 1), 1)
+                sub_masks[pixel_str].putpixel((x, y), 1)
     return sub_masks
 
 
-# TODO remove, this function creates submasks from given dir and stores in another
-# def store_sub_masks():
-#     for subdir, dirs, files in os.walk(DIRECTORY_CROPPED_MASK):
-#         for file in files:
-#             # # TODO delete, used for test only
-#             # file = "3.tif"
-#             if not file.lower().endswith(('.tiff', '.tif', '.jpg', '.jpeg')):
-#                 continue
-#             with Image.open(DIRECTORY_CROPPED_MASK + file) as image:
-#                 submasks = create_sub_masks(image)
-#                 print(type(submasks))
-#                 print(submasks)
-#                 index = 0
-#                 for key, value in submasks.items():
-#                     print(key, ' : ', type(value), ' : ', value, '\n')
-#                     value.save(DIRECTORY_SPLIT_MASK + 'img_' + file.split('.')[0] + str(index) + ".jpeg", "JPEG")
-#                     index = index + 1
-#                 # for submask in submasks:
-#                 #     submask.save(DIRECTORY_SPLIT_MASK + 'img_' + file.split('.')[0] + str(index) + ".jpeg", "JPEG")
-#             # break
-#     # Calculate number of generated images with masks
-#     path, dirs, files = next(os.walk(DIRECTORY_CROPPED_MASK))
-#     file_count = len(files)
-#     print(f'\n{file_count} images are generated\n')
-
-
 def generate_annotation_for_single_image(annotations, file, annotation_id_index, image_id_index, is_crowd_flag=False):
-    # store_sub_masks()
     try:
         mask_image = Image.open(DIRECTORY_CROPPED_MASK + file)
-        original_image = Image.open(DIRECTORY_CROPPED_IMAGE + file)
     except FileNotFoundError:
         raise Exception("Your dataset is corrupted, check ${file}")
     sub_masks = create_sub_masks(mask_image)
-    fig, ax = plt.subplots()
-    ax.imshow(original_image)
-    # plt.show()
     for color, sub_mask in sub_masks.items():
+        # we care only for buildings, but if we're not, this line can be uncommented and used for all masks
         if color != '(238, 118, 33)':
             continue
-        category_id = category_ids[color]
-        annotation_id, category_annotations = create_sub_mask_annotation(sub_mask, image_id_index,
-                                                                         category_id,
-                                                                         annotation_id_index,
-                                                                         is_crowd_flag)
+        category_id = 1
+        annotation_id_index, category_annotations = create_sub_mask_annotation(sub_mask,
+                                                                               image_id_index,
+                                                                               category_id,
+                                                                               annotation_id_index,
+                                                                               is_crowd_flag)
         annotations.extend(category_annotations)
-        annotation_id_index += 1
-
-        for single_annotation in category_annotations:
-            x, y, w, h = single_annotation['bbox']
-            ax.add_patch(
-                Rectangle((x, y), w, h, linewidth=1,
-                          edgecolor=colors[color],
-                          facecolor='none'))
-
-    plt.show()
     return annotations, annotation_id_index
-    # break
 
 
 # todo
-def main():
-    annotation_id_index = 1
+def get_coco_annotations():
     annotations = []
     images = []
+    annotation_id_index = 0
+
     for subdir, dirs, files in os.walk(DIRECTORY_CROPPED_IMAGE):
         for index, file in enumerate(files, start=1):
             mask_image = Image.open(DIRECTORY_CROPPED_IMAGE + file)
@@ -211,6 +148,7 @@ def main():
                 'id': index
             }
             images.append(image)
+
             annotations, annotation_id_index = generate_annotation_for_single_image(annotations,
                                                                                     file,
                                                                                     annotation_id_index,
@@ -220,23 +158,6 @@ def main():
     with open(DIRECTORY_ANNOTATIONS + 'images.json', 'w') as outfile:
         json.dump(images, outfile)
 
-    info = {"year": 2020,
-            "version": "1.0",
-            "description": "SemCity Toulouse: A benchmark for building instance segmentation in satellite images",
-            "contributor": "Roscher, Ribana and Volpi, Michele and Mallet, Clément and Drees, Lukas and Wegner, Jan",
-            "url": "http://rs.ipb.uni-bonn.de/data/semcity-toulouse/",
-            "date_created": "2020"
-            }
-    licenses = [{"id": 1,
-                 "name": "Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License",
-                 "url": "https://creativecommons.org/licenses/by-nc-sa/3.0/"
-                 }]
-    # categories = [{"id": index, "name": name, "supercategory": name}
-    #               for index, name in enumerate(category_name, start=1)]
-
-    # only when one category building exists
-    categories = [{"id": 2, "name": 'building', "supercategory": 'building'}]
-
     coco = {
         'info': info,
         'licenses': licenses,
@@ -245,9 +166,55 @@ def main():
         'annotations': annotations,
         'categories': categories
     }
-    with open(DIRECTORY_ANNOTATIONS + 'coco.json', 'w') as outfile:
-        json.dump(coco, outfile)
+
+    return coco
+
+
+def show_images_with_bbox(coco):
+    images = coco['images']
+    annotations = coco['annotations']
+    ax_dict = dict()
+    for image in images:
+        fig, ax = plt.subplots()
+        ax_dict[image['id']] = ax
+        image = Image.open(DIRECTORY_CROPPED_IMAGE + image['file_name'])
+        ax.imshow(image)
+    for annotation in annotations:
+        image_id = annotation['image_id']
+        x, y, w, h = annotation['bbox']
+        ax_from_image = ax_dict[image_id]
+        ax_from_image.add_patch(Rectangle((x, y), w, h,
+                                          linewidth=1,
+                                          edgecolor=building_color,
+                                          facecolor='none'))
+    plt.show()
+
+
+def store_images_with_bbox(coco):
+    images = coco['images']
+    annotations = coco['annotations']
+    image_dict = dict()
+    image_annotations = dict()
+    for image in images:
+        image_dict[image['id']] = DIRECTORY_CROPPED_IMAGE + image['file_name']
+        image_annotations[image['id']] = []
+    for annotation in annotations:
+        image_id = annotation['image_id']
+        x, y, w, h = annotation['bbox']
+        (image_annotations[image_id]).append([x, y, w, h])
+    for image in image_dict:
+        image_path = image_dict[image]
+        image_to_show = Image.open(image_path)
+        img_draw = ImageDraw.Draw(image_to_show)
+        for annotation in image_annotations[image]:
+            [x, y, w, h] = annotation
+            img_draw.rectangle([(x, y), (x + w, y + h)], outline=building_color, width=3)
+        image_to_show.show()
 
 
 if __name__ == '__main__':
-    main()
+    coco = get_coco_annotations()
+    with open(DIRECTORY_ANNOTATIONS + 'coco.json', 'w') as outfile:
+        json.dump(coco, outfile)
+    # show_images_with_bbox(coco)
+    store_images_with_bbox(coco)

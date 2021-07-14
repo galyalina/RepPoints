@@ -4,12 +4,17 @@ from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
-from src.preprocessing.data_annotations_generation import generate_coco_annotations
+from src.preprocessing.data_annotations_generation_from_buildings_mask import generate_coco_annotations
 
-DIRECTORY_ANNOTATIONS = "../../data/annotations/"
-DIRECTORY_IMAGE = "../../data/train/"
-DIRECTORY_MASK = "../../data/mask/"
-DIRECTORY_VISUALIZATION = "../../data/visualization/"
+DIRECTORY_ANNOTATIONS = "../../data_B/annotations/"
+DIRECTORY_IMAGE = "../../data_B/train/"
+DIRECTORY_MASK = "../../data_B/mask/"
+DIRECTORY_VISUALIZATION = "../../data_B/visualization/"
+
+# DIRECTORY_ANNOTATIONS = "../../data/annotations/"
+# DIRECTORY_IMAGE = "../../data/train/"
+# DIRECTORY_MASK = "../../data/mask/"
+# DIRECTORY_VISUALIZATION = "../../data/visualization/"
 
 building_color = '#ee7621'
 

@@ -6,10 +6,10 @@ import os
 # DIRECTORY_CROPPED_MASK = "../../data/mask/"
 # DIRECTORY_IMAGE = "../../data/train_large/"
 # DIRECTORY_MASK = "../../data/mask_large/"
-DIRECTORY_CROPPED_IMAGE = "../../data_test/train/"
-DIRECTORY_CROPPED_MASK = "../../data_test/mask/"
-DIRECTORY_IMAGE = "../../data_test/train_large/"
-DIRECTORY_MASK = "../../data_test/mask_large/"
+DIRECTORY_CROPPED_IMAGE = "../../data_B/train/"
+DIRECTORY_CROPPED_MASK = "../../data_B/mask/"
+DIRECTORY_IMAGE = "../../data_B/train_large/"
+DIRECTORY_MASK = "../../data_B/mask_large/"
 IMAGE_SIZE = 460
 IMAGE_OVERLAP_PERCENTAGE = 0.5
 

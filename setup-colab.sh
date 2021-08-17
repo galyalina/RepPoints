@@ -31,7 +31,6 @@ conda install pytorch torchvision torchaudio cudatoolkit=10.0 -c pytorch
 pip install mmcv==0.2.14
 
 # install mmdetection
-git clone --recursive https://github.com/galyalina/RepPoints.git
 cd RepPoints
 pip install -r requirements.txt
 bash init.sh

@@ -29,7 +29,7 @@ conda install pytorch torchvision torchaudio cudatoolkit=10.0 -c pytorch
 
 # install the latest mmcv
 pip install mmcv==0.2.14
-
+pip install ipykernel
 # install mmdetection
 cd RepPoints
 pip install -r requirements.txt

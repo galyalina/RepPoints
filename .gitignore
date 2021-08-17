@@ -341,3 +341,5 @@ data/*
 /data_A/*
 /data_B/*
 
+/data_based_building_segmentation/
+/data_based_segmentation/

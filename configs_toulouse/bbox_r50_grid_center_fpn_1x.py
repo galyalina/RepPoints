@@ -3,7 +3,7 @@ norm_cfg = dict(type='GN', num_groups=32, requires_grad=True)
 
 model = dict(
     type='RepPointsDetector',
-    pretrained='modelzoo://resnet50',
+    pretrained='torchvision://resnet50',
     backbone=dict(
         type='ResNet',
         depth=50,
@@ -65,8 +65,8 @@ test_cfg = dict(
     nms=dict(type='nms', iou_thr=0.5),
     max_per_img=100)
 # dataset settings
-dataset_type = 'ToulouseDataset'
-data_root = 'data/toulouse'
+dataset_type = 'CocoDataset'
+data_root = 'data/toulouse/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 data = dict(
@@ -130,8 +130,8 @@ total_epochs = 12
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/bbox_r50_grid_center_fpn_1x'
+work_dir = './checkpoints/bbox_r50_grid_center_fpn_1x'
 load_from = None
-resume_from = None
+resume_from = './checkpoints/bbox_r50_grid_center_fpn_1x/latest.pth'
 auto_resume = True
 workflow = [('train', 1)]

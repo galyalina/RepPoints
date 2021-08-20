@@ -1,4 +1,4 @@
-pip uninstall torch
+pip uninstall torch -y
 
 ##Uninstall the current CUDA version
 #apt-get --purge remove cuda nvidia* libnvidia-*
@@ -25,7 +25,7 @@ conda create -n openmmlab python=3.7 -y
 conda activate openmmlab
 
 # install pytorch
-conda install pytorch torchvision torchaudio cudatoolkit=10.0 -c pytorch
+conda install pytorch torchvision torchaudio cudatoolkit=10.0 -c pytorch -y
 
 # install the latest mmcv
 pip install mmcv==0.2.14

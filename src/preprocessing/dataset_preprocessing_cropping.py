@@ -6,10 +6,10 @@ import os
 # DIRECTORY_CROPPED_MASK = "../../data/mask/"
 # DIRECTORY_IMAGE = "../../data/train_large/"
 # DIRECTORY_MASK = "../../data/mask_large/"
-DIRECTORY_CROPPED_IMAGE = "../../data_B/train/"
-DIRECTORY_CROPPED_MASK = "../../data_B/mask/"
-DIRECTORY_IMAGE = "../../data_B/train_large/"
-DIRECTORY_MASK = "../../data_B/mask_large/"
+DIRECTORY_CROPPED_IMAGE = "../../latest/train/"
+DIRECTORY_CROPPED_MASK = "../../latest/mask/"
+DIRECTORY_IMAGE = "../../latest/train_large/"
+DIRECTORY_MASK = "../../latest/mask_large/"
 IMAGE_SIZE = 460
 IMAGE_OVERLAP_PERCENTAGE = 0.5
 
@@ -37,24 +37,48 @@ def delete_folder(path):
                 print()
 
 
+def start_points(size, split_size, overlap=0):
+    points = [(0, min(size, split_size))]
+    stride = int(split_size * (1 - overlap))
+    counter = 1
+    while True:
+        pt = stride * counter
+        if pt + split_size >= size:
+            points.append((pt, size-pt))
+            break
+        else:
+            points.append((pt, split_size))
+        counter += 1
+    return points
+
+
 def crop_images(original, mask, str_prefix):
     # Generate the set of windows, with a 256-pixel max window size and 50% overlap
-    windows = sw.generate(original, sw.DimOrder.HeightWidthChannel, IMAGE_SIZE, IMAGE_OVERLAP_PERCENTAGE)
+    windows = sw.generate(original, ['h', 'w', 'c'], IMAGE_SIZE, IMAGE_OVERLAP_PERCENTAGE)
+    height, width, channels = original.shape
+    X_points = start_points(width, IMAGE_SIZE, IMAGE_OVERLAP_PERCENTAGE)
+    Y_points = start_points(height, IMAGE_SIZE, IMAGE_OVERLAP_PERCENTAGE)
 
-    # print(len(windows))
-    # print(type(windows))
+    index = 0
+    for y, h in Y_points:
+        for x, w in X_points:
+            cropped_image = original[y:y + h, x:x + w]
+            cropped_mask = mask[y:y + h, x:x + w]
+            cv2.imwrite(DIRECTORY_CROPPED_IMAGE + '' + str_prefix + str(index) + '.tif', cropped_image)
+            cv2.imwrite(DIRECTORY_CROPPED_MASK + '' + str_prefix + str(index) + '.tif', cropped_mask)
+            index += 1
 
-    for index, single_window in enumerate(windows):
-        print(single_window)
-        x = single_window.x
-        y = single_window.y
-        width = single_window.w
-        height = single_window.h
-        cropped_image = original[y:y + height, x:x + width]
-        cropped_mask = mask[y:y + height, x:x + width]
-
-        cv2.imwrite(DIRECTORY_CROPPED_IMAGE + '' + str_prefix + str(index) + '.tif', cropped_image)
-        cv2.imwrite(DIRECTORY_CROPPED_MASK + '' + str_prefix + str(index) + '.tif', cropped_mask)
+    # for index, single_window in enumerate(windows):
+    #     print(single_window)
+    #     x = single_window.x
+    #     y = single_window.y
+    #     width = single_window.w
+    #     height = single_window.h
+    #     cropped_image = original[y:y + height, x:x + width]
+    #     cropped_mask = mask[y:y + height, x:x + width]
+    #
+    #     cv2.imwrite(DIRECTORY_CROPPED_IMAGE + '' + str_prefix + str(index) + '.tif', cropped_image)
+    #     cv2.imwrite(DIRECTORY_CROPPED_MASK + '' + str_prefix + str(index) + '.tif', cropped_mask)
 
 
 def main():

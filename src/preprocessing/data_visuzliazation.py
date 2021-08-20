@@ -6,10 +6,18 @@ from PIL import Image, ImageDraw
 
 from src.preprocessing.data_annotations_generation_from_buildings_mask import generate_coco_annotations
 
-DIRECTORY_ANNOTATIONS = "../../data_B/annotations/"
-DIRECTORY_IMAGE = "../../data_B/train/"
-DIRECTORY_MASK = "../../data_B/mask/"
-DIRECTORY_VISUALIZATION = "../../data_B/visualization/"
+# DIRECTORY_ANNOTATIONS = "../../latest/annotations/"
+# DIRECTORY_IMAGE = "../../latest/train/"
+# DIRECTORY_MASK = "../../latest/mask/"
+# DIRECTORY_VISUALIZATION = "../../latest/visualization/"
+# FILE_NAME = "instances_train.json"
+
+
+DIRECTORY_ANNOTATIONS = "../../latest/annotations/"
+DIRECTORY_IMAGE = "../../latest/val/"
+DIRECTORY_MASK = "../../latest/val_mask/"
+DIRECTORY_VISUALIZATION = "../../latest/visualization_val/"
+FILE_NAME = "instances_val.json"
 
 # DIRECTORY_ANNOTATIONS = "../../data/annotations/"
 # DIRECTORY_IMAGE = "../../data/train/"
@@ -65,8 +73,8 @@ def store_images_with_bbox(coco, folder):
 
 
 if __name__ == '__main__':
-    generate_coco_annotations(DIRECTORY_IMAGE, DIRECTORY_MASK, DIRECTORY_ANNOTATIONS)
-    file = open(DIRECTORY_ANNOTATIONS + "coco.json", )
+    generate_coco_annotations(DIRECTORY_IMAGE, DIRECTORY_MASK, DIRECTORY_ANNOTATIONS, FILE_NAME)
+    file = open(DIRECTORY_ANNOTATIONS + FILE_NAME, )
     coco = json.load(file)
     # show_images_with_bbox(coco)
     store_images_with_bbox(coco, DIRECTORY_VISUALIZATION)

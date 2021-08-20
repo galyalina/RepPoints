@@ -134,7 +134,7 @@ def generate_annotation_for_single_image(mask_folder, annotations,
 
 
 # todo
-def generate_coco_annotations(images_folder, mask_folder, annotations_folder):
+def generate_coco_annotations(images_folder, mask_folder, annotations_folder, file_name):
     annotations = []
     images = []
     annotation_id_index = 0
@@ -173,6 +173,6 @@ def generate_coco_annotations(images_folder, mask_folder, annotations_folder):
         'categories': categories
     }
 
-    with open(annotations_folder + 'coco.json', 'w') as outfile:
+    with open(annotations_folder + file_name, 'w') as outfile:
         json.dump(coco, outfile)
     return coco

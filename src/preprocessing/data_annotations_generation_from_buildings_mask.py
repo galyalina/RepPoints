@@ -1,9 +1,7 @@
-import os
 import numpy as np
-from matplotlib.patches import Rectangle
-import matplotlib.pyplot as plt
+import os
 import json
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from skimage.measure import label, regionprops
 
@@ -40,12 +38,14 @@ building_id = '(238, 118, 33)'
 # sport venues & 160, 30, 230 & purple
 # void &  255, 255, 255 &
 
-def get_bbox(image):
+def get_bbox(image, str_index):
     # image = np.array(mask_image)
     # idx = image[:, :] > 124
     # image[idx] = 255
     # idx = image[:, :] <= 124
     # image[idx] = 0
+    # im = Image.fromarray(image)
+    # im.save('../../data_test/masks/' + str_index + '.jpeg')
     label_img = label(image)
     regions = regionprops(label_img)
     # fig, ax = plt.subplots()
@@ -58,7 +58,7 @@ def get_bbox(image):
     return array_of_boxes
 
 
-def create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, is_crowd):
+def create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, is_crowd, id_for_file_debug):
     annotations = []
     # Find contours (boundary lines) around each sub-mask
     # Note: there could be multiple contours if the object
@@ -66,7 +66,7 @@ def create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, i
     # print(sub_mask.shape())
     img_array = np.array(sub_mask)
 
-    bboxes = get_bbox(img_array)
+    bboxes = get_bbox(img_array, id_for_file_debug)
     for box in bboxes:
         annotation_id = annotation_id + 1
         annotation = {
@@ -91,11 +91,16 @@ def create_sub_masks(mask_image):
         for y in range(height):
             # Get the RGB values of the pixel
             pixel = mask_image.getpixel((x, y))[:3]
-
             # If the pixel is not black...
             if pixel != (0, 0, 0):
-                # Check to see if we've created a sub-mask...
+                # in our specific case this check is done because we have differnet colors for different types of buildings, but they all mean building and we'd kike to combine to same mask
+                # if pixel != (255, 255, 255):
+                #     pixel_str = str((1, 1, 1))
+                # else:
+                #     pixel_str = str(pixel)
+                # comment if once again test with joining colors needed
                 pixel_str = str(pixel)
+                # Check to see if we've created a sub-mask...
                 sub_mask = sub_masks.get(pixel_str)
                 if sub_mask is None:
                     # Create a sub-mask (one bit per pixel) and add to the dictionary
@@ -119,16 +124,20 @@ def generate_annotation_for_single_image(mask_folder, annotations,
     except FileNotFoundError:
         raise Exception("Your dataset is corrupted, check ${file}")
     sub_masks = create_sub_masks(mask_image)
+    index = 0
+
     for color, sub_mask in sub_masks.items():
         # we care only for buildings, but if we're not, this line can be uncommented and used for all masks
         if color == '(255, 255, 255)':
             continue
         category_id = 1
+        index += 1
         annotation_id_index, category_annotations = create_sub_mask_annotation(sub_mask,
                                                                                image_id_index,
                                                                                category_id,
                                                                                annotation_id_index,
-                                                                               is_crowd_flag)
+                                                                               is_crowd_flag,
+                                                                               str(index))
         annotations.extend(category_annotations)
     return annotations, annotation_id_index
 

@@ -13,10 +13,10 @@ from src.preprocessing.data_annotations_generation_from_buildings_mask import ge
 # FILE_NAME = "instances_train.json"
 
 
-DIRECTORY_ANNOTATIONS = "../../latest/annotations/"
-DIRECTORY_IMAGE = "../../latest/val/"
-DIRECTORY_MASK = "../../latest/val_mask/"
-DIRECTORY_VISUALIZATION = "../../latest/visualization_val/"
+DIRECTORY_ANNOTATIONS = "../../data_test/annotations/"
+DIRECTORY_IMAGE = "../../data_test/val/"
+DIRECTORY_MASK = "../../data_test/mask/"
+DIRECTORY_VISUALIZATION = "../../data_test/visualization/"
 FILE_NAME = "instances_val.json"
 
 # DIRECTORY_ANNOTATIONS = "../../data/annotations/"

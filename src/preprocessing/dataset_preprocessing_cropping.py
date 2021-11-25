@@ -6,10 +6,11 @@ import os
 # DIRECTORY_CROPPED_MASK = "../../data/mask/"
 # DIRECTORY_IMAGE = "../../data/train_large/"
 # DIRECTORY_MASK = "../../data/mask_large/"
-DIRECTORY_CROPPED_IMAGE = "../../latest/train/"
-DIRECTORY_CROPPED_MASK = "../../latest/mask/"
-DIRECTORY_IMAGE = "../../latest/train_large/"
-DIRECTORY_MASK = "../../latest/mask_large/"
+PATH = "../../data/toulouse_no_geo"
+DIRECTORY_CROPPED_IMAGE = PATH + "/train/"
+DIRECTORY_CROPPED_MASK = PATH + "/mask/"
+DIRECTORY_IMAGE = PATH + "/large/"
+DIRECTORY_MASK = PATH + "/large_mask/"
 IMAGE_SIZE = 460
 IMAGE_OVERLAP_PERCENTAGE = 0.5
 
@@ -44,7 +45,7 @@ def start_points(size, split_size, overlap=0):
     while True:
         pt = stride * counter
         if pt + split_size >= size:
-            points.append((pt, size-pt))
+            points.append((pt, size - pt))
             break
         else:
             points.append((pt, split_size))

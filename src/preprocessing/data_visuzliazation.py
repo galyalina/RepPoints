@@ -12,11 +12,11 @@ from src.preprocessing.data_annotations_generation_from_buildings_mask import ge
 # DIRECTORY_VISUALIZATION = "../../latest/visualization/"
 # FILE_NAME = "instances_train.json"
 
-
-DIRECTORY_ANNOTATIONS = "../../data_test/annotations/"
-DIRECTORY_IMAGE = "../../data_test/val/"
-DIRECTORY_MASK = "../../data_test/mask/"
-DIRECTORY_VISUALIZATION = "../../data_test/visualization/"
+PATH = "../../data/toulouse_no_geo/"
+DIRECTORY_ANNOTATIONS = PATH + "annotations/"
+DIRECTORY_IMAGE = PATH + "train/"
+DIRECTORY_MASK = PATH + "mask/"
+DIRECTORY_VISUALIZATION = PATH + "visualization/"
 FILE_NAME = "instances_val.json"
 
 # DIRECTORY_ANNOTATIONS = "../../data/annotations/"
@@ -73,7 +73,7 @@ def store_images_with_bbox(coco, folder):
 
 
 if __name__ == '__main__':
-    generate_coco_annotations(DIRECTORY_IMAGE, DIRECTORY_MASK, DIRECTORY_ANNOTATIONS, FILE_NAME)
+    # generate_coco_annotations(DIRECTORY_IMAGE, DIRECTORY_MASK, DIRECTORY_ANNOTATIONS, FILE_NAME)
     file = open(DIRECTORY_ANNOTATIONS + FILE_NAME, )
     coco = json.load(file)
     # show_images_with_bbox(coco)

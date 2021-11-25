@@ -90,6 +90,7 @@ def create_sub_masks(mask_image):
     for x in range(width):
         for y in range(height):
             # Get the RGB values of the pixel
+            mask_image = mask_image.convert("RGB")
             pixel = mask_image.getpixel((x, y))[:3]
             # If the pixel is not black...
             if pixel != (0, 0, 0):
